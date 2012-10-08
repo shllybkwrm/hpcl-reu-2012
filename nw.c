@@ -1,15 +1,32 @@
 /*
 	Shelly Bagchi, HCPL REU, Fall 2012
+	Gene Sequence Alignment
+	using Needleman-Wunsch & Smith-Waterman Algorithms
 */
 
 
 
 #include <stdio.h>
+#include <string.h>
 
 
-int sx,tx,fy,fx,a,g,m,mism,optimal;
+int sx,tx, fy,fx, a, g,m,mism, optimal, algorithm;
 
-void print1dint(int n, int arr[n]) {
+/*
+	sx		size of sequence 1 (s)
+	tx		size of sequence 2 (t)
+	fy		y-size of similarity matrix f
+	fx		x-size of similarity matrix f
+	a		maximum size of aligned sequences (sx + tx)
+	g		gap penalty
+	m		match bonus
+	mism		mismatch penalty
+	optimal		score of optimal alignment, i.e. maximum possible score
+	algorithm	Needleman-Wunsch = 0, Smith-Waterman = 1
+*/
+
+
+void print1dint(const int n, int arr[n]) {
 	int i;
 
 	//printf("1D int array size: n = %d\n",n);
@@ -26,7 +43,7 @@ void print1dint(int n, int arr[n]) {
 
 
 
-void print2dint(int n, int m, int arr2d[n][m]) {
+void print2dint(const int n, const int m, int arr2d[n][m]) {
 	int i,j;
 
 	printf("2D int array size: n = %d, m = %d\n",n,m);
@@ -50,7 +67,7 @@ void print2dint(int n, int m, int arr2d[n][m]) {
 
 
 
-void print3dint(int n, int m, int l, int arr3d[n][m][l]) {
+void print3dint(const int n, const int m, const int l, int arr3d[n][m][l]) {
 	int i,j,k;
 
 	printf("3D int array size: n = %d, m = %d\n",n,m);
@@ -84,7 +101,7 @@ void print3dint(int n, int m, int l, int arr3d[n][m][l]) {
 
 
 
-int max(int i, int j, int paths[fy][fx][3], int left, int diag, int up) {
+int max(const int i, const int j, int paths[fy][fx][3], const int left, const int diag, const int up) {
 
 	if(left >= diag  &&  left >= up) paths[i][j][0] = 1;
 	if(diag >= left  &&  diag >= up) paths[i][j][1] = 1;
@@ -118,17 +135,18 @@ void sim(int i, int j, char s[sx], char t[tx], int f[fy][fx], int paths[fy][fx][
 	}
 
 	else if(i==0) {
-		f[i][j] = j*g;
+		f[i][j] = algorithm?0:j*g;
 		paths[i][j][0] = 1;
 	}
 
 	else if(j==0) {
-		f[i][j] = i*g;
+		f[i][j] = algorithm?0:i*g;
 		paths[i][j][2] = 1;
 	}
 
 	else {
 		f[i][j] = max(i,j,paths, (f[i][j-1]+g), ( f[i-1][j-1]+( s[j-1]==t[i-1] ? m : mism ) ), (f[i-1][j]+g) );
+		if(algorithm && f[i][j]<0) f[i][j] = 0;
 	}
 
 
@@ -138,7 +156,7 @@ void sim(int i, int j, char s[sx], char t[tx], int f[fy][fx], int paths[fy][fx][
 
 
 
-void insertGap(int index, int n, char arr[n]) {
+void insertGap(int index, const int n, char arr[n]) {
 	int i;
 	char temp, temp1;
 	
@@ -218,17 +236,37 @@ int score(char sAligned[a], char tAligned[a]) {
 
 
 
-int main() {
+int main(int argc, char* argv[]) {
 	int i,j,k;
-	g = -1;		// gap penalty
-	m = 2;		// match
-	mism = -1;	// mismatch penalty
+	
+	if(argc==3) {
+		// defaults:
+		g = -1;		// gap penalty
+		m = 2;		// match bonus
+		mism = -1;	// mismatch penalty
+		algorithm = 0;	// Needleman-Wunsch
+	}
+	
+	else if(argc==7) {
+		g = (int)argv[3];
+		m = (int)argv[4];
+		mism = (int)argv[5];
+		algorithm = (int)argv[6];
+	}
+	
+	else {
+		printf("\nIncorrect usage.\nSyntax: %s Sequence1(s) Sequence2(t) gapPenalty(default=-1) matchBonus(default=2) mismatchPenalty(default=-1) whichAlgorithm(default NW=0;SW=1)\n\n", argv[0]);
+		return 0;
+	}
+	
 
-	char s[] = "ACACACTA";
-	char t[] = "AGCACACA";
-
-	sx = sizeof(s)/sizeof(char) -1;
-	tx = sizeof(t)/sizeof(char) -1;
+	sx = strlen(argv[1]);
+	tx = strlen(argv[2]);
+	
+	char s[sx], t[tx];
+	
+	strcpy(s,argv[1]);
+	strcpy(t,argv[2]);
 
 	fy = tx+1;
 	fx = sx+1;
@@ -236,7 +274,7 @@ int main() {
 	int f[fy][fx];  // similarity matrix
 	for(i=0; i<fy; i++) {
 		for(j=0; j<fx; j++) {
-			f[i][j] = -1;
+			f[i][j] = 999;
 		}
 	}
 
