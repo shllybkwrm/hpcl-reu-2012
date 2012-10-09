@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
 	}
 	
 	else {
-		printf("\nIncorrect usage.\nSyntax: %s Sequence1(s) Sequence2(t) gapPenalty(default=-1) matchBonus(default=2) mismatchPenalty(default=-1) whichAlgorithm(default NW=0;SW=1)\n\n", argv[0]);
+		printf("\nIncorrect usage.\nSyntax: %s Sequence1(s) Sequence2(t)\n\nOR\n\n%s Sequence1(s) Sequence2(t) gapPenalty(default=-1) matchBonus(default=2) mismatchPenalty(default=-1) whichAlgorithm(default NW=0;SW=1)\n\n", argv[0], argv[0]);
 		return 0;
 	}
 	
