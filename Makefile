@@ -1,7 +1,7 @@
-OBJS=nw.o
-CFLAGS=-g -I. -Wall -Wextra -Werror -lpthread
+OBJS=main.o
+CFLAGS=-g -I. -Wall -Wextra -Werror -O3 -lpthread
 #DEFINES=-DTHINK_TIME
-BIN=nw
+BIN=main
 CC=gcc
 
 %.o:%.c
@@ -14,10 +14,20 @@ clean:
 	rm $(BIN) $(OBJS)
 
 # to run the program, command line "make run"
-SEQ1=ACAATCC
-SEQ2=AGCATGC
-GP=-1
-MB=2
+
+#WIKIPEDIA SW
+#SEQ1=ACACACTA
+#SEQ2=AGCACACA
+#GP=-1
+#MB=2
+#MP=-1
+#WA=1
+
+#BLUE BOOK
+SEQ1=ATAGCT
+SEQ2=GATATGCA
+GP=-2
+MB=1
 MP=-1
 WA=0
 
