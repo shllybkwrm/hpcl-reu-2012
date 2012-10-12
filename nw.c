@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 
 int sx,tx, fy,fx, a, g,m,mism, optimal, algorithm;
@@ -248,10 +249,10 @@ int main(int argc, char* argv[]) {
 	}
 	
 	else if(argc==7) {
-		g = (int)argv[3];
-		m = (int)argv[4];
-		mism = (int)argv[5];
-		algorithm = (int)argv[6];
+		g = atoi(argv[3]);
+		m = atoi(argv[4]);
+		mism = atoi(argv[5]);
+		algorithm = atoi(argv[6]);
 	}
 	
 	else {
