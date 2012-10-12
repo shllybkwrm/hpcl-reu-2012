@@ -1,5 +1,6 @@
 /*
-	Shelly Bagchi, HCPL REU, Fall 2012
+	Muhammad Abdul-Rahim, Shelly Bagchi, Adam McCormack, Johnathan Ross
+	HCPL REU, Fall 2012
 	Gene Sequence Alignment
 	using Needleman-Wunsch & Smith-Waterman Algorithms
 */
@@ -10,7 +11,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-/* Global Variables */
+// Global Variables
 int sx, tx, fy, fx, a, g, m, mism, optimal, algorithm;
 
 /*
@@ -191,12 +192,12 @@ align(char sAligned[a], char tAligned[a], int paths[fy][fx][3])
 			insertGap( (j-1),a,tAligned);
 			j--;
 		}
-		else if(paths[i][j][1])	//diag => match
+		else if(paths[i][j][1])			//diag => match
 		{
 			i--;
 			j--;
 		}
-		else if(paths[i][j][2])	//up => insert in s
+		else if(paths[i][j][2])			//up => insert in s
 		{
 			insertGap( (i-1),a,sAligned);
 			i--;
@@ -234,19 +235,18 @@ score(char sAligned[a], char tAligned[a])
 
 
 
-/* Main Function starts here */
-int
-main(int argc, char* argv[])
+// Main Function
+int main(int argc, char* argv[])
 {
 	int i;
 	
 	if(argc==3)
 	{
-		// defaults:
+		// defaults
 		g = -1;			// gap penalty
 		m = 2;			// match bonus
 		mism = -1;		// mismatch penalty
-		algorithm = 0;	// Needleman-Wunsch
+		algorithm = 0;		// Needleman-Wunsch
 	}
 	
 	else if(argc==7)
