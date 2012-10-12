@@ -1,7 +1,7 @@
-OBJS=main.o
+OBJS=nw.o
 CFLAGS=-g -I. -Wall -Wextra -Werror -lpthread
 #DEFINES=-DTHINK_TIME
-BIN=main
+BIN=nw
 CC=gcc
 
 %.o:%.c
