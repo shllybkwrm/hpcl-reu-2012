@@ -9,11 +9,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
-/* Global Variables */
+
+
 int sx, tx, fy, fx, a, g, m, mism, optimal, algorithm;
 
 /*
+	Global Variables:
+	
 	sx		size of sequence 1 (s)
 	tx		size of sequence 2 (t)
 	fy		y-size of similarity matrix f
@@ -27,6 +31,8 @@ int sx, tx, fy, fx, a, g, m, mism, optimal, algorithm;
 */
 
 
+
+
 inline void
 print1dint(const unsigned long int n, int arr[n])
 {
@@ -37,6 +43,7 @@ print1dint(const unsigned long int n, int arr[n])
 
 	puts("\n");
 }
+
 
 
 
@@ -56,6 +63,7 @@ print2dint(const unsigned long int n, const unsigned long int m, int arr2d[n][m]
 
 	putchar('\n');
 }
+
 
 
 
@@ -92,16 +100,17 @@ int
 max(const unsigned int i, const unsigned int j, int paths[fy][fx][3],
 	const int left, const int diag, const int up)
 {
-	if(diag >= left  &&  diag >= up) paths[i][j][1] = 1;
-	if(left >= diag  &&  left >= up) paths[i][j][0] = 1;
-	if(up >= left  &&  up >= diag) paths[i][j][2] = 1;
+	if(diag >= left && diag >= up)	paths[i][j][1] = 1;
+	if(left >= diag && left >= up) 	paths[i][j][0] = 1;
+	if(up	>= left && up	>= diag)paths[i][j][2] = 1;
 
-	if(paths[i][j][1]) return diag;
+	if(paths[i][j][1]) 	return diag;
 	else if(paths[i][j][0]) return left;
 	else if(paths[i][j][2]) return up;
 	
 	return 0;
 }
+
 
 
 
@@ -139,10 +148,12 @@ sim(int i, int j, char s[sx], char t[tx], int f[fy][fx], int paths[fy][fx][3])
 	else
 	{
 		f[i][j] = max(i,j,paths, (f[i][j-1]+g), ( f[i-1][j-1]+( s[j-1]==t[i-1] ? m : mism ) ), (f[i-1][j]+g) );
+		
 		if(algorithm && f[i][j]<0)
 			f[i][j] = 0;
 	}
 }
+
 
 
 
@@ -153,7 +164,6 @@ insertGap(int index, const unsigned long int n, char arr[n])
 	char temp = '\0', temp1 = '\0';
 	
 	if(index<0) index=0;
-	//printf("INDEX %d\n",index);
 	
 	for(i=0; i<n; i++)
 	{
@@ -174,6 +184,7 @@ insertGap(int index, const unsigned long int n, char arr[n])
 
 
 
+
 void
 align(char sAligned[a], char tAligned[a], int paths[fy][fx][3])
 {
@@ -181,35 +192,27 @@ align(char sAligned[a], char tAligned[a], int paths[fy][fx][3])
 	
 	while( i>=0 && j>=0 )
 	{
-		printf("%d %d\n",i,j);
-		if(paths[i][j][1])	//diag => match
+		if(paths[i][j][1])		//diag => match
 		{
 			i--;
 			j--;
 		}
-		else if(paths[i][j][0])	//left => insert in t
+		else if(paths[i][j][0])		//left => insert in t
 		{
-			printf("     L    %d %d\n",i,j);
 			insertGap( i,a,tAligned);
 			j--;
 		}
-		else if(paths[i][j][2])	//up => insert in s
+		else if(paths[i][j][2])		//up => insert in s
 		{
-			printf("     U    %d %d\n",i,j);
 			insertGap( j,a,sAligned);
 			i--;
 		}
 		else break;
 		
-		
-		/*printf("partially aligned sequence s:\n");
-		puts(sAligned);
-		printf("partially aligned sequence t:\n");
-		puts(tAligned);*/
-		
 	}
 
 }
+
 
 
 
@@ -232,19 +235,22 @@ score(char sAligned[a], char tAligned[a])
 
 
 
-/* Main Function starts here */
+// Main Function
+
 int
 main(int argc, char* argv[])
 {
 	int i;
+	time_t start, end;
 	
 	if(argc==3)
 	{
-		// defaults:
+		// defaults
+				
 		g = -1;			// gap penalty
 		m = 2;			// match bonus
 		mism = -1;		// mismatch penalty
-		algorithm = 0;	// Needleman-Wunsch
+		algorithm = 0;		// Needleman-Wunsch
 	}
 	
 	else if(argc==7)
@@ -305,7 +311,20 @@ main(int argc, char* argv[])
 	else
 		puts("Smith-Waterman");
 	puts("\n");
-
+	
+	// End initializations
+	
+	
+	
+	
+	
+	//Start timer
+	start = time(NULL);
+	
+	
+	
+	// Start computations
+	
 	printf("Computing similarity...\r");
 	sim(0,0,s,t,f,paths);
 	printf("Similarity matrix computed.\n");
@@ -323,9 +342,20 @@ main(int argc, char* argv[])
 	printf("Aligned sequence t:\n");
 	puts(tAligned);
 	
-	
 	printf("The alignment score is:  %d\n", score(sAligned, tAligned) );
+	
+	// End computations
+	
+	
+	
+	
+	// End timer
+	end = time(NULL);
+	printf("Time taken for computation: %f sec\n", difftime(end,start));
+	
+	
+	
 	puts("\n");
-
+	
 	return 0;
 }
