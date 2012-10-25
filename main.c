@@ -2,6 +2,7 @@
 	Muhammad Abdul-Rahim, Shelly Bagchi, Adam McCormack, Johnathan Ross
 	GWU HCPL REU, Fall 2012
 	Sequence Alignment using Needleman-Wunsch & Smith-Waterman Algorithms
+	Non-Parallel C Implementation
 */
 
 
@@ -13,7 +14,9 @@
 
 
 
-int sx, tx, fy, fx, a, g, m, mism, optimal, algorithm;
+unsigned long int sx, tx, fy, fx, a;
+int g, m, mism, optimal;
+unsigned int algorithm;
 
 /*
 	Global Variables:
@@ -39,9 +42,9 @@ print1dint(const unsigned long int n, int arr[n])
 	unsigned long int i;
 
 	for(i=0; i<n; i++)
-		printf("%d ",arr[i]);
+		printf("%d\t",arr[i]);
 
-	puts("\n");
+	putchar('\n');
 }
 
 
@@ -52,7 +55,7 @@ print2dint(const unsigned long int n, const unsigned long int m, int arr2d[n][m]
 {
 	unsigned long int i,j;
 
-	printf("2D int array size: n = %lu, m = %lu\n",n,m);
+	printf("2D int array size: y-size = %lu, x-size = %lu\n",n,m);
 
 	for(i=0; i<n; i++)
 	{
@@ -72,7 +75,7 @@ print3dint(const long unsigned int n, const long unsigned int m, const long unsi
 {
 	unsigned long int i,j,k;
 
-	printf("3D int array size: n = %lu, m = %lu\n",n,m);
+	printf("3D int array size: y-size = %lu, x-size = %lu\n",n,m);
 
 	for(i=0; i<n; i++)
 	{
@@ -97,12 +100,12 @@ print3dint(const long unsigned int n, const long unsigned int m, const long unsi
 
 
 int
-max(const unsigned int i, const unsigned int j, int paths[fy][fx][3],
+max(const unsigned long int i, const unsigned long int j, int paths[fy][fx][3],
 	const int left, const int diag, const int up)
 {
-	if(diag >= left && diag >= up)	paths[i][j][1] = 1;
-	if(left >= diag && left >= up) 	paths[i][j][0] = 1;
-	if(up	>= left && up	>= diag)paths[i][j][2] = 1;
+	if(diag >= left && diag >= up)	 paths[i][j][1] = 1;
+	if(left >= diag && left >= up) 	 paths[i][j][0] = 1;
+	if(up	>= left && up	>= diag) paths[i][j][2] = 1;
 
 	if(paths[i][j][1]) 	return diag;
 	else if(paths[i][j][0]) return left;
@@ -114,8 +117,13 @@ max(const unsigned int i, const unsigned int j, int paths[fy][fx][3],
 
 
 
+/*
+	Compute 2D similarity matrix
+*/
+
+
 void
-sim(int i, int j, char s[sx], char t[tx], int f[fy][fx], int paths[fy][fx][3])
+findSim(unsigned long int i, unsigned long int j, char s[sx], char t[tx], int f[fy][fx], int paths[fy][fx][3])
 {
 	if(i==0 && j==0)
 	{
@@ -125,7 +133,7 @@ sim(int i, int j, char s[sx], char t[tx], int f[fy][fx], int paths[fy][fx][3])
 			for(j=0; j<fx; j++)
 			{
 				if(i==0 && j==0);
-				else sim(i,j,s,t,f,paths);
+				else findSim(i,j,s,t,f,paths);
 			}
 			
 		}
@@ -157,6 +165,81 @@ sim(int i, int j, char s[sx], char t[tx], int f[fy][fx], int paths[fy][fx][3])
 
 
 
+
+
+
+void bumpRow(int f1d[2][fx])
+{
+	unsigned long int i;
+	
+	print1dint(fx,f1d[0]);
+	
+	for(i=0; i<fx; i++)
+	{
+		f1d[0][i] = f1d[1][i];
+		f1d[1][i] = 0;
+	}
+}
+
+
+
+
+/*
+	Find similarity matrix, but only one row at a time (space optimization)
+*/
+
+
+void
+findSim1d(unsigned long int i, unsigned long int j, char s[sx], char t[tx], int f1d[2][fx], int pathsFrom1d[fy][fx][3])
+{
+	if(i==0 && j==0)
+	{
+		f1d[0][0] = 0;
+		for(i=0; i<fy; i++)
+		{
+			for(j=0; j<fx; j++)
+			{
+				if(i==0 && j==0);
+				else findSim1d(i,j,s,t,f1d,pathsFrom1d);
+			}
+			
+			if(i!=0) bumpRow(f1d);
+			
+		}
+		
+		print1dint(fx,f1d[0]);
+		optimal = f1d[1][j-1];
+	}
+
+	else if(i==0)
+	{
+		f1d[0][j] = algorithm?0:j*g;
+		pathsFrom1d[i][j][0] = 1;
+	}
+
+	else if(j==0)
+	{
+		f1d[1][j] = algorithm?0:i*g;
+		pathsFrom1d[i][j][2] = 1;
+	}
+
+	else
+	{
+		f1d[1][j] = max(i,j,pathsFrom1d, (f1d[1][j-1]+g), ( f1d[0][j-1]+( s[j-1]==t[i-1] ? m : mism ) ), (f1d[0][j]+g) );
+		
+		if(algorithm && f1d[1][j]<0)
+			f1d[1][j] = 0;
+	}
+}
+
+
+
+
+/*
+	Used in actual sequence alignment
+*/
+
+
 void
 insertGap(int index, const unsigned long int n, char arr[n])
 {
@@ -184,11 +267,14 @@ insertGap(int index, const unsigned long int n, char arr[n])
 
 
 
+/*
+	Aligns actual sequences
+*/
 
 void
 align(char sAligned[a], char tAligned[a], int paths[fy][fx][3])
 {
-	int i=(fy-1),j=(fx-1);
+	long int i=(fy-1),j=(fx-1);
 	
 	while( i>=0 && j>=0 )
 	{
@@ -219,18 +305,18 @@ align(char sAligned[a], char tAligned[a], int paths[fy][fx][3])
 int
 score(char sAligned[a], char tAligned[a])
 {
-	int i, sigma=0;
+	unsigned long int i, sum=0;
 	
 	for(i=0; i<a; i++)
 	{	
-		if(sAligned[i]=='\0' || tAligned[i]=='\0') break;
-		else if(sAligned[i] == tAligned[i]) sigma += m;			// match
-		else if(sAligned[i]=='-' || tAligned[i]=='-') sigma += g;	// gap
-		else  sigma += mism;						// mismatch
+		if(sAligned[i]=='\0' || tAligned[i]=='\0') 	break;
+		else if(sAligned[i] == tAligned[i]) 		sum += m;	// match
+		else if(sAligned[i]=='-' || tAligned[i]=='-') 	sum += g;	// gap
+		else  						sum+=mism;	// mismatch
 		
 	}
 	
-	return sigma;
+	return sum;
 }
 
 
@@ -240,7 +326,7 @@ score(char sAligned[a], char tAligned[a])
 int
 main(int argc, char* argv[])
 {
-	int i;
+	unsigned long int i;
 	time_t start, end;
 	
 	if(argc==3)
@@ -284,7 +370,19 @@ main(int argc, char* argv[])
 
 	int paths[fy][fx][3];
 	memset(paths,0,sizeof(paths));
+	
+	
+	// Variables for 1D implementation test
 
+	int f1d[2][fx];  // similarity matrix (1D)
+	memset(f1d,0,sizeof(f1d));
+
+	int pathsFrom1d[fy][fx][3];
+	memset(pathsFrom1d,0,sizeof(pathsFrom1d));
+	
+	// end
+	
+	
 	a = sx + tx;
 
 	char sAligned[a];
@@ -297,7 +395,12 @@ main(int argc, char* argv[])
 		if(i<tx) tAligned[i] = t[i];
 		else tAligned[i] = '\0';
 	}
+	
+	// End initializations
+	
 
+	// Print current config
+	
 	printf("\nSequence s:\n\t");
 	puts(s);
 	printf("Sequence t:\n\t");
@@ -312,29 +415,40 @@ main(int argc, char* argv[])
 		puts("Smith-Waterman");
 	puts("\n");
 	
-	// End initializations
 	
 	
 	
-	
-	
-	//Start timer
+	// Start timer
 	start = time(NULL);
 	
 	
 	
 	// Start computations
 	
-	printf("Computing similarity...\r");
-	sim(0,0,s,t,f,paths);
+	printf("Computing similarity...\n");
+	findSim(0,0,s,t,f,paths);
 	printf("Similarity matrix computed.\n");
 	printf("The optimal score is %d.\n\n", optimal);
 
 	print2dint(fy,fx,f);
 	print3dint(fy,fx,3,paths);
+	
+	
+	// 1D implementation test
+	
+	printf("Starting 1D computation...\n");
+	findSim1d(0,0,s,t,f1d,pathsFrom1d);
+	putchar('\n');
 
-	printf("Computing optimal alignment...\r");
-	align(sAligned,tAligned,paths);
+	print3dint(fy,fx,3,pathsFrom1d);
+	printf("1D computation finished.\n");
+	printf("The optimal score is %d.\n\n", optimal);
+	
+	// end test
+	
+
+	printf("Computing optimal alignment...\n");
+	align(sAligned,tAligned,pathsFrom1d);
 	printf("Optimal global alignment computed.\n\n");
 
 	printf("Aligned sequence s:\n");
@@ -352,10 +466,11 @@ main(int argc, char* argv[])
 	// End timer
 	end = time(NULL);
 	printf("Time taken for computation: %f sec\n", difftime(end,start));
-	
-	
-	
+
+
 	puts("\n");
+	
+	
 	
 	return 0;
 }
