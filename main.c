@@ -137,9 +137,10 @@ max(const unsigned long int i, const unsigned long int j, int paths[fy][fx][3],
 
 
 /*
-	Compute 2D similarity matrix
+	Compute 2D similarity matrix - O(nm)
 */
 
+/*
 void
 findSim(unsigned long int i, unsigned long int j, char s[sx], char t[tx], int f[fy][fx], int paths[fy][fx][3])
 {
@@ -179,6 +180,7 @@ findSim(unsigned long int i, unsigned long int j, char s[sx], char t[tx], int f[
 			f[i][j] = 0;
 	}
 }
+*/
 
 
 
@@ -433,12 +435,12 @@ main(int argc, char* argv[])
 	printf("Gap Penalty:\t%d\n",g);
 	printf("Match Bonus:\t%d\n",m);
 	printf("Mismatch:\t%d\n",mism);
-	printf("Using:\t\t");
+	printf("Algorithm:\t");
 	if( algorithm==0)
-		puts("Needleman-Wunsch Algorithm");
+		puts("Needleman-Wunsch");
 	else
 		puts("Smith-Waterman");
-	puts("\n");
+	putchar('\n');
 	
 	
 	
@@ -450,27 +452,14 @@ main(int argc, char* argv[])
 	
 	// Start computations
 	
-	printf("Computing similarity...\n");
-	findSim(0,0,s,t,f,paths);
-	printf("Similarity matrix computed.\n");
-	printf("The optimal score is %d.\n\n\n", optimal);
-
-	print2dint(fy,fx,f);
-	print3dint(fy,fx,3,paths);
-	
-	
-	// 1D implementation test
-	
-	printf("Starting 1D computation...\n");
+	printf("Similarity matrix using O(n) space optimization:\n");
 	findSim1d(0,0,s,t,f1d,pathsFrom1d);
-	putchar('\n');
+	printf("\nSimilarity matrix computed.\n");
+	printf("The optimal score is %d.\n\n", optimal);
 
+	printf("Possible paths:\n");
 	print3dint(fy,fx,3,pathsFrom1d);
-	printf("1D computation finished.\n");
-	printf("The optimal score is %d.\n\n\n", optimal);
-	
-	// end test
-	
+		
 
 	printf("Computing optimal alignment...\n");
 	align(sAligned,tAligned,pathsFrom1d);
@@ -482,19 +471,16 @@ main(int argc, char* argv[])
 	printf("Aligned sequence t:\n");
 	puts(tAligned);
 	
-	printf("The alignment score is:  %d\n\n\n", score(sAligned, tAligned) );
+	printf("The alignment score is:  %d\n\n", score(sAligned, tAligned) );
 	
 	// End computations
 	
-	
-	
+		
 	
 	// End timer
 	end = time(NULL);
-	printf("Time taken for computation: %f sec\n", difftime(end,start));
-
-
-	puts("\n");
+	printf("Time taken for computation: %f sec\n\n", difftime(end,start));
+	
 	
 	
 	
