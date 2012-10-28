@@ -47,7 +47,7 @@ print1dint(const unsigned long int n, int arr[n])
 	unsigned long int i;
 
 	for(i=0; i<n; i++)
-		printf("%d\t",arr[i]);
+		printf("% d\t",arr[i]);
 
 	putchar('\n');
 }
@@ -69,7 +69,7 @@ print2dint(const unsigned long int n, const unsigned long int m, int arr2d[n][m]
 	for(i=0; i<n; i++)
 	{
 		for(j=0; j<m; j++)
-			printf("%d\t",arr2d[i][j]);
+			printf("% d\t",arr2d[i][j]);
 		putchar('\n');
 	}
 
@@ -211,9 +211,11 @@ void bumpRow(int f1d[2][fx])
 	Find similarity matrix, but only one row at a time (space optimization)
 */
 
-void
+int
 findSim1d(unsigned long int i, unsigned long int j, char s[sx], char t[tx], int f1d[2][fx], int pathsFrom1d[fy][fx][3])
 {
+	static int localOptimal=0;
+	
 	if(i==0 && j==0)
 	{
 		f1d[0][0] = 0;
@@ -252,6 +254,9 @@ findSim1d(unsigned long int i, unsigned long int j, char s[sx], char t[tx], int 
 		if(algorithm && f1d[1][j]<0)
 			f1d[1][j] = 0;
 	}
+	
+	
+	return localOptimal;
 }
 
 
@@ -322,7 +327,6 @@ align(char sAligned[a], char tAligned[a], int paths[fy][fx][3])
 
 
 
-
 /*
 	Compute the alignment score for two sequences
 */
@@ -330,19 +334,48 @@ align(char sAligned[a], char tAligned[a], int paths[fy][fx][3])
 int
 score(char sAligned[a], char tAligned[a])
 {
-	unsigned long int i, sum=0;
+	unsigned long int i, score=0;
 	
 	for(i=0; i<a; i++)
 	{	
 		if(sAligned[i]=='\0' || tAligned[i]=='\0') 	break;
-		else if(sAligned[i] == tAligned[i]) 		sum += m;	// match
-		else if(sAligned[i]=='-' || tAligned[i]=='-') 	sum += g;	// gap
-		else  						sum+=mism;	// mismatch
+		else if(sAligned[i] == tAligned[i]) 		score += m;	// match
+		else if(sAligned[i]=='-' || tAligned[i]=='-') 	score += g;	// gap
+		else  						score+=mism;	// mismatch
 		
 	}
 	
-	return sum;
+	return score;
 }
+
+
+
+
+/*
+	Compute aligned sequences in O(n) space
+*/
+
+void
+alignOptimized(char sAligned[a], char tAligned[a])
+{
+	unsigned long int i,j;
+	char subS[a];
+	
+	//int subPaths[fy][fx][3];
+	//memset(paths,0,sizeof(subPaths));
+	
+	puts(sAligned);
+	puts(tAligned);
+	
+	for(i=1; i<=sx; i++)
+	{
+		strncpy(subS,sAligned,(size_t)i);
+		puts(subS);
+		for(j=i+1; j<a; j++)
+			subS[j] = '\0';
+	}
+}
+
 
 
 
@@ -432,11 +465,11 @@ main(int argc, char* argv[])
 	puts(s);
 	printf("Sequence t:\n\t");
 	puts(t);
-	printf("Gap Penalty:\t%d\n",g);
-	printf("Match Bonus:\t%d\n",m);
-	printf("Mismatch:\t%d\n",mism);
+	printf("Gap Penalty:\t% d\n",g);
+	printf("Match Bonus:\t% d\n",m);
+	printf("Mismatch:\t% d\n",mism);
 	printf("Algorithm:\t");
-	if( algorithm==0)
+	if(algorithm==0)
 		puts("Needleman-Wunsch");
 	else
 		puts("Smith-Waterman");
@@ -453,25 +486,30 @@ main(int argc, char* argv[])
 	// Start computations
 	
 	printf("Similarity matrix using O(n) space optimization:\n");
-	findSim1d(0,0,s,t,f1d,pathsFrom1d);
+	optimal = findSim1d(0,0,s,t,f1d,pathsFrom1d);
 	printf("\nSimilarity matrix computed.\n");
-	printf("The optimal score is %d.\n\n", optimal);
+	printf("The optimal score is % d.\n\n", optimal);
 
 	printf("Possible paths:\n");
 	print3dint(fy,fx,3,pathsFrom1d);
-		
+
+
+	// O(n) alignment test
+	
+	alignOptimized(sAligned,tAligned);
+			
 
 	printf("Computing optimal alignment...\n");
 	align(sAligned,tAligned,pathsFrom1d);
 	printf("Optimal global alignment computed.\n\n");
 
-	printf("Aligned sequence s:\n");
-
+	printf("Aligned sequence s:\n\t");
 	puts(sAligned);
-	printf("Aligned sequence t:\n");
+	printf("Aligned sequence t:\n\t");
 	puts(tAligned);
 	
-	printf("The alignment score is:  %d\n\n", score(sAligned, tAligned) );
+	printf("The alignment score is:  % d\n\n", score(sAligned, tAligned) );
+	
 	
 	// End computations
 	
