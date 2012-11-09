@@ -208,20 +208,21 @@ void bumpRow(int f1d[2][fx])
 
 
 /*
-	Find similarity matrix, but only one row at a time (space optimization)
+	Find similarity matrix, but only one row at a time (=>O(n) space optimization)
 */
 
 int
-findSim1d(unsigned long int i, unsigned long int j, char s[sx], char t[tx], int f1d[2][fx], int pathsFrom1d[fy][fx][3])
+findSim1d(unsigned long int i, unsigned long int j, char s[], char t[], int f1d[2][fx], int pathsFrom1d[fy][fx][3])
 {
 	static int localOptimal=0;
+	unsigned long int xSize = (strlen(s) +1), ySize = (strlen(t) +1);
 	
 	if(i==0 && j==0)
 	{
 		f1d[0][0] = 0;
-		for(i=0; i<fy; i++)
+		for(i=0; i<ySize; i++)
 		{
-			for(j=0; j<fx; j++)
+			for(j=0; j<xSize; j++)
 			{
 				if(i==0 && j==0);
 				else findSim1d(i,j,s,t,f1d,pathsFrom1d);
@@ -298,9 +299,10 @@ insertGap(int index, const unsigned long int n, char arr[n])
 */
 
 void
-align(char sAligned[a], char tAligned[a], int paths[fy][fx][3])
+align(char sAligned[], char tAligned[], int paths[fy][fx][3])
 {
-	long int i=(fy-1),j=(fx-1);
+	//long int i = (strlen(sAligned)-strlen(tAligned)),j = (strlen(tAligned)-strlen(sAligned));
+	long int i = (fy-1),j = (fx-1);
 	
 	while( i>=0 && j>=0 )
 	{
@@ -354,28 +356,53 @@ score(char sAligned[a], char tAligned[a])
 /*
 	Compute aligned sequences in O(n) space
 */
-
+/*
 void
-alignOptimized(char sAligned[a], char tAligned[a])
+alignOptimized(char sAligned[], char tAligned[])
 {
 	unsigned long int i,j;
-	char subS[a];
+	int localOptimal;
+	char subS[a], subT[a];	
 	
-	//int subPaths[fy][fx][3];
-	//memset(paths,0,sizeof(subPaths));
+	int subF[2][fx];
+	memset(subF,0,sizeof(subF));
 	
+	int subPaths[fy][fx][3];
+	memset(subPaths,0,sizeof(subPaths));
+	
+	puts("Original sequences:");
 	puts(sAligned);
 	puts(tAligned);
 	
 	for(i=1; i<=sx; i++)
 	{
-		strncpy(subS,sAligned,(size_t)i);
+		for(j=0; j<a; j++)
+		{
+			subS[i] = '\0';
+			subT[i] = '\0';
+		}
+		strncpy(subS,sAligned,i);
+		strcpy(subT,tAligned);
+		
+		puts("Sub-Sequences:");
 		puts(subS);
-		for(j=i+1; j<a; j++)
-			subS[j] = '\0';
+		puts(subT);
+		
+		puts("Finding sub-alignment...");
+		localOptimal = findSim1d(0,0,subS,subT,subF,subPaths);
+		printf("Optimal Score (local): %d\n",localOptimal);
+		
+		puts("Sub-paths:");
+		print3dint(fy,fx,3,subPaths);
+		
+		puts("Sub-alignment:");
+		align(subS,subT,subPaths);
+		puts(subS);
+		puts(subT);
+		printf("Alignment Score: %d \n\n",score(subS,subT) );
 	}
 }
-
+*/
 
 
 
@@ -432,7 +459,7 @@ main(int argc, char* argv[])
 	memset(paths,0,sizeof(paths));
 	
 	
-	// Variables for 1D implementation test
+	// Variables for 1D implementation
 
 	int f1d[2][fx];  // similarity matrix (1D)
 	memset(f1d,0,sizeof(f1d));
@@ -495,8 +522,8 @@ main(int argc, char* argv[])
 
 
 	// O(n) alignment test
-	
-	alignOptimized(sAligned,tAligned);
+	//printf("Optimized alignment test:\n");
+	//alignOptimized(sAligned,tAligned);
 			
 
 	printf("Computing optimal alignment...\n");
